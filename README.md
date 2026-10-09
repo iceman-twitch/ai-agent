@@ -1,10 +1,10 @@
 # CodeAgent
 
 An AI coding assistant agent for the command line, powered by the Anthropic
-Claude API (`claude-opus-4-8`). It behaves as a friendly, expert software
-engineer that helps you **write, debug, refactor, explain, and test** code in any
-major language — with syntax-highlighted, Markdown-formatted answers and
-in-memory conversation history for the session.
+Claude API. It behaves as a friendly, expert software engineer that helps you
+**write, debug, refactor, explain, and test** code in any major language — with
+syntax-highlighted, Markdown-formatted answers and in-memory conversation
+history for the session.
 
 ## Features
 
@@ -22,39 +22,73 @@ in-memory conversation history for the session.
 
 ## Setup
 
-```bash
-pip install -r requirements.txt
-cp .env.example .env        # then edit .env and add your key
-# or: export ANTHROPIC_API_KEY=sk-ant-...
+Install Python 3.10 or newer, then create the virtual environment and install
+the requirements using the script for your platform.
+
+On Windows, run:
+
+```bat
+setup_venv.bat
 ```
+
+On Linux, make the scripts executable once, then run setup:
+
+```sh
+chmod +x setup_venv.sh run_agent.sh
+./setup_venv.sh
+```
+
+The run script prompts for your Anthropic API key if `.env` is missing or its
+`ANTHROPIC_API_KEY` is blank or still a placeholder. Input is hidden, and the
+key is saved to `.env`. Alternatively, create `.env` yourself by copying
+`.env.example` and replacing the placeholder key.
 
 Get an API key at <https://console.anthropic.com/>.
 
 ## Usage
 
-```bash
+The run scripts use the virtual environment and forward any arguments to the
+agent. For example:
+
+```sh
+# Linux
+./run_agent.sh
+./run_agent.sh -q "Write a Python function to check if a string is a palindrome"
+```
+
+```bat
+:: Windows
+run_agent.bat
+run_agent.bat -q "Write a Python function to check if a string is a palindrome"
+```
+
+You can also run the agent directly with the virtual environment's Python:
+
+```sh
 # Interactive chat
-python codeagent.py
+.venv/bin/python codeagent.py
 
 # One-shot question
-python codeagent.py -q "Write a Python function to check if a string is a palindrome"
+.venv/bin/python codeagent.py -q "Write a Python function to check if a string is a palindrome"
 
 # Debug a file by piping it in
-cat buggy.py | python codeagent.py -q "Find and fix the bug in this code"
+cat buggy.py | .venv/bin/python codeagent.py -q "Find and fix the bug in this code"
 
 # Use a different model
-python codeagent.py -m claude-sonnet-4-6
+.venv/bin/python codeagent.py -m claude-sonnet-4-6
 
 # Cheaper / faster: no thinking, low effort
-python codeagent.py --no-thinking --effort low
+.venv/bin/python codeagent.py --no-thinking --effort low
 ```
+
+On Windows, use `.venv\Scripts\python.exe` in place of `.venv/bin/python`.
 
 ### Options
 
 | Flag                 | Effect                                                        |
 | -------------------- | ------------------------------------------------------------ |
 | `-q, --query`        | Run one query and exit (interactive otherwise)               |
-| `-m, --model`        | Model to use (default `claude-opus-4-8`)                     |
+| `-m, --model`        | Model to use (default `claude-haiku-5-5`)                    |
 | `--effort`           | `low` / `medium` / `high` / `max` — lower = fewer tokens     |
 | `--no-thinking`      | Disable adaptive thinking (faster, cheaper)                  |
 | `--no-cache`         | Disable prompt caching                                       |
@@ -94,7 +128,7 @@ are the cheap ones, so a high cache-read count means caching is working.
 ## Requirements
 
 - Python 3.10+
-- `anthropic`, `python-dotenv`, `rich` (see `requirements.txt`)
+- `anthropic`, `python-dotenv`, `rich`, and `pydantic` (see `requirements.txt`)
 - Pydantic is constrained below 2.14 because newer versions use a `ForwardRef`
   argument unavailable in Python 3.10.0.
 
