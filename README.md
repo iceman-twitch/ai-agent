@@ -95,6 +95,8 @@ are the cheap ones, so a high cache-read count means caching is working.
 
 - Python 3.10+
 - `anthropic`, `python-dotenv`, `rich` (see `requirements.txt`)
+- Pydantic is constrained below 2.14 because newer versions use a `ForwardRef`
+  argument unavailable in Python 3.10.0.
 
 ## Notes
 

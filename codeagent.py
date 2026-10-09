@@ -48,15 +48,15 @@ except ImportError as exc:  # pragma: no cover - import guard
 # --- Configuration ------------------------------------------------------------
 
 # Default to the latest, most capable Claude model. Override with --model.
-DEFAULT_MODEL = "claude-opus-4-8"
+DEFAULT_MODEL = "claude-haiku-5-5"
 
 # Streaming responses can be long; give the model generous room. Streaming
 # avoids the SDK's HTTP-timeout guard that triggers on large non-streaming calls.
-MAX_TOKENS = 16000
+MAX_TOKENS = 8000
 
 # Valid effort levels (output_config.effort). Lower effort => fewer tokens.
 EFFORT_LEVELS = ("low", "medium", "high", "max")
-DEFAULT_EFFORT = "high"
+DEFAULT_EFFORT = "low"
 
 # The agent's persona. The system prompt is what makes Claude behave as a
 # friendly, expert software engineer. Replace the text below with your own exact
@@ -169,7 +169,12 @@ class CodeAgent:
         """
         self.history.append({"role": "user", "content": user_message})
 
-        assistant_text = self._stream_response()
+        try:
+            assistant_text = self._stream_response()
+        except Exception:
+            # A failed request should not leave a dangling user turn in memory.
+            self.history.pop()
+            raise
 
         # Persist the assistant turn so future messages have context.
         self.history.append({"role": "assistant", "content": assistant_text})
