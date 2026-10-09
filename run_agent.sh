@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -eu
 
-cd -- "$(dirname -- "$0")"
+APP_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
-if [ ! -x ".venv/bin/python" ]; then
+if [ ! -x "$APP_DIR/.venv/bin/python" ]; then
     echo "Virtual environment not found. Run ./setup_venv.sh first." >&2
     exit 1
 fi
 
-.venv/bin/python ensure_api_key.py
+"$APP_DIR/.venv/bin/python" "$APP_DIR/ensure_api_key.py"
 
-exec .venv/bin/python codeagent.py "$@"
+exec "$APP_DIR/.venv/bin/python" "$APP_DIR/codeagent.py" "$@"

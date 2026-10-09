@@ -17,6 +17,10 @@ history for the session.
 - **Lower token usage** — prompt caching (on by default), an optional history window,
   and live usage reporting so you can see the savings (see below).
 - **Graceful error handling** for auth, rate-limit, network, and server errors.
+- **Project-aware tools** to list, read, and search files, plus create, edit,
+  rename, and delete individual files after your approval.
+- **Approved shell and Git commands**, run from the active project directory.
+- **Remembered project selection** across launches, with `/switch` to change it.
 - API key from the `ANTHROPIC_API_KEY` env var **or** a `.env` file (`python-dotenv`).
 - Pipe code in via stdin: it's appended to your query as a code block.
 
@@ -40,31 +44,57 @@ chmod +x setup_venv.sh run_agent.sh
 
 The run script prompts for your Anthropic API key if `.env` is missing or its
 `ANTHROPIC_API_KEY` is blank or still a placeholder. Input is hidden, and the
-key is saved to `.env`. Alternatively, create `.env` yourself by copying
-`.env.example` and replacing the placeholder key.
+key is saved to the `.env` file beside the CodeAgent scripts. Alternatively,
+create that file by copying `.env.example` and replacing the placeholder key.
 
 Get an API key at <https://console.anthropic.com/>.
+
+The first launch uses the current working directory as the project and saves
+that choice in `~/.codeagent/project.json` (on Windows, under your user home
+directory). Later launches reopen that project. To choose a project when
+starting CodeAgent, pass `--project` with its directory.
 
 ## Usage
 
 The run scripts use the virtual environment and forward any arguments to the
-agent. For example:
+agent. Run the script from your target project directory (using its path from
+where CodeAgent is installed); the selected project is remembered on later runs.
+Alternatively, pass `--project`:
 
 ```sh
 # Linux
-./run_agent.sh
-./run_agent.sh -q "Write a Python function to check if a string is a palindrome"
+cd /path/to/my-project
+/path/to/ai-agent/run_agent.sh
+/path/to/ai-agent/run_agent.sh -q "Write a Python function to check if a string is a palindrome"
+/path/to/ai-agent/run_agent.sh --project "/path/to/another-project"
 ```
 
 ```bat
 :: Windows
-run_agent.bat
-run_agent.bat -q "Write a Python function to check if a string is a palindrome"
+cd /d C:\work\my-project
+"C:\path\to\ai-agent\run_agent.bat"
+"C:\path\to\ai-agent\run_agent.bat" -q "Write a Python function to check if a string is a palindrome"
+"C:\path\to\ai-agent\run_agent.bat" --project "C:\work\another-project"
 ```
+
+In interactive mode, use `/switch <path>` (or `/switch` and enter a path) to
+change projects. Switching clears the current conversation to avoid mixing
+project context. `/status` shows the active project. CodeAgent can list, read,
+and search project files without confirmation. It asks before every file
+creation, edit, rename, deletion, or shell/Git command; declined operations do
+not run. File tools are restricted to the project directory, and secret `.env`
+files are not readable by the model.
+
+Use interactive mode when you want to approve tool actions. If a one-shot
+request is running without an available confirmation prompt, modifying tools
+are cancelled.
+Large files can be read in numbered chunks with the `read_file` tool's
+`start_line` and `max_lines` options.
 
 You can also run the agent directly with the virtual environment's Python:
 
 ```sh
+# Run these from the CodeAgent installation directory.
 # Interactive chat
 .venv/bin/python codeagent.py
 
@@ -82,12 +112,14 @@ cat buggy.py | .venv/bin/python codeagent.py -q "Find and fix the bug in this co
 ```
 
 On Windows, use `.venv\Scripts\python.exe` in place of `.venv/bin/python`.
+Add `--project "path"` to select a project explicitly.
 
 ### Options
 
 | Flag                 | Effect                                                        |
 | -------------------- | ------------------------------------------------------------ |
 | `-q, --query`        | Run one query and exit (interactive otherwise)               |
+| `--project PATH`    | Open and remember a project directory                        |
 | `-m, --model`        | Model to use (default `claude-haiku-5-5`)                    |
 | `--effort`           | `low` / `medium` / `high` / `max` — lower = fewer tokens     |
 | `--no-thinking`      | Disable adaptive thinking (faster, cheaper)                  |
@@ -106,6 +138,7 @@ On Windows, use `.venv\Scripts\python.exe` in place of `.venv/bin/python`.
 | `/thinking on\|off` | Toggle adaptive thinking                        |
 | `/cache on\|off`    | Toggle prompt caching                           |
 | `/window <n>`      | Keep only the last n messages (0 = unlimited)   |
+| `/switch [path]`   | Switch projects and clear the current chat      |
 | `/tokens`          | Show session token usage                        |
 | `/help`            | Show help                                       |
 
